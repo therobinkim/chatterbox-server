@@ -5,16 +5,29 @@
  * this file and include it in basic-server.js so that it actually works.
  * *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html. */
 
-var handleRequest = function(request, response) {
-  /* the 'request' argument comes from nodes http module. It includes info about the
-  request - such as what URL the browser is requesting. */
+var storageMessages = [];
+var storageRooms = [];
 
-  /* Documentation for both request and response can be found at
-   * http://nodemanual.org/0.8.14/nodejs_ref_guide/http.html */
+exports.handler = function( request, response ) {
+  var statusCode;
+  var parsedObject;
 
-  console.log("Serving request type " + request.method + " for url " + request.url);
+  if ( request.url !== '/classes/room1' ) {
+    statusCode = 404;
+  } else if ( request.method === 'GET' ) {
+    statusCode = 200;
+  } else if ( request.method === 'POST' ) {
+    statusCode = 201;
+    request.on( 'data', function( buffer ) {
+      parsedObject = JSON.parse( buffer.toString() );
+      // console.log(parsedObject);
+      storageRooms.push(parsedObject);
+    });
+  } else {
+    console.log(request.method);
 
-  var statusCode = 200;
+    statusCode = 200;
+  }
 
   /* Without this line, this server wouldn't work. See the note
    * below about CORS. */
@@ -23,13 +36,70 @@ var handleRequest = function(request, response) {
   headers['Content-Type'] = "text/plain";
 
   /* .writeHead() tells our server what HTTP status code to send back */
-  response.writeHead(statusCode, headers);
+  response.writeHead( statusCode, headers );
 
   /* Make sure to always call response.end() - Node will not send
    * anything back to the client until you do. The string you pass to
    * response.end() will be the body of the response - i.e. what shows
    * up in the browser.*/
-  response.end("Hello, World!");
+  response.end(
+    JSON.stringify({
+      results: storageRooms
+    })
+  );
+};
+
+exports.handleRequest = function( request, response ) {
+  /* the 'request' argument comes from nodes http module. It includes info about the
+  request - such as what URL the browser is requesting. */
+
+  /* Documentation for both request and response can be found at
+   * http://nodemanual.org/0.8.14/nodejs_ref_guide/http.html */
+
+  // console.log("Serving request type " + request.method + " for url " + request.url);
+
+  // console.log("===== ===== ===== ===== ===== ===== ===== ===== ");
+  // console.log(request.url);
+  console.log('entered handle request');
+  var statusCode;
+  var parsedObject;
+
+  if( request.url !== '/classes/messages' ) {
+    statusCode = 404;
+  } else if( request.method === 'GET' ) {
+    console.log('GET REQUEST RECEIVED');
+    statusCode = 200;
+  } else if( request.method === 'POST' ) {
+    console.log('POST REQUEST RECEIVED');
+    statusCode = 201;
+    request.on( 'data', function( buffer ) {
+      parsedObject = JSON.parse( buffer.toString() );
+      storageMessages.push( parsedObject );
+    });
+  } else {
+    // console.log("HOW DID WE GET HERE??");
+    // console.log(request.method);
+    statusCode = 200;
+  }
+
+  /* Without this line, this server wouldn't work. See the note
+   * below about CORS. */
+  var headers = defaultCorsHeaders;
+
+  headers['Content-Type'] = "text/plain";
+
+  /* .writeHead() tells our server what HTTP status code to send back */
+  response.writeHead( statusCode, headers );
+
+  /* Make sure to always call response.end() - Node will not send
+   * anything back to the client until you do. The string you pass to
+   * response.end() will be the body of the response - i.e. what shows
+   * up in the browser.*/
+  response.end(
+    JSON.stringify({
+      results: storageMessages
+    })
+  );
 };
 
 /* These headers will allow Cross-Origin Resource Sharing (CORS).
