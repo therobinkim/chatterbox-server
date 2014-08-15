@@ -16,7 +16,7 @@ var ip = "127.0.0.1";
 
 var routeMap = {
   '/classes/messages': requestHandle.handleRequest,
-  '/classes/room1': requestHandle.handler
+  '/classes/room1': requestHandle.handleRequest
 };
 
 /* We use node's http module to create a server. Note, we called it 'server', but
@@ -28,7 +28,12 @@ var server = http.createServer(function(request, response) {
   var pathName = parsedUrl.pathname;
   var route = routeMap[pathName];
 
-  route( request, response );
+  if ( route ) {
+    route( request, response );
+  } else {
+    response.writeHead( 404, {} );
+    response.end();
+  }
 });
 console.log("Listening on http://" + ip + ":" + port);
 server.listen(port, ip);
